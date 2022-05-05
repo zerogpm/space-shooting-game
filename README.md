@@ -82,10 +82,21 @@ _Below is an example of how you can instruct your audience on installing and set
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Fix docker compose issues
-- [ ] Tell users how to use docker-compose-custom.yml
-- [ ] Multi-language Support
-    - [ ] Chinese
+- [x] Fix docker compose set up
+- [ ] Create a Basic Base Defense Game
+    - [ ] shoot projectiles
+    - [ ] create enemies
+    - [ ] detect collision
+    - [ ] remove offscreen projectiles
+    - [ ] colorize game
+    - [ ] shrink Enemies on Hit
+    - [ ] create particle explosion on hit
+    - [ ] add Score
+    - [ ] add game over ui
+    - [ ] add restart button
+  
+- [ ] Movement, Enemies, and Enhanced Interaction
+    - [ ] player movement
 
 See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
