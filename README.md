@@ -87,7 +87,7 @@ _Below is an example of how you can instruct your audience on installing and set
 - [ ] Multi-language Support
     - [ ] Chinese
 
-See the [open issues](https://github.com/zerogpm/wordpress-docker/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -123,7 +123,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [https://github.com/zerogpm/wordpress-docker](https://github.com/zerogpm/wordpress-docker)
+Project Link: [https://github.com/zerogpm/space-shooting-game](https://github.com/zerogpm/space-shooting-game)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
