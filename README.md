@@ -68,7 +68,7 @@ _Below is an example of how you can instruct your audience on installing and set
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/zerogpm/wordpress-docker.git
+   git clone https://github.com/zerogpm/space-shooting-game.git
    ```
 2. CD into you downloaded folder
    ```sh
@@ -84,7 +84,7 @@ _Below is an example of how you can instruct your audience on installing and set
 
 - [x] Fix docker compose set up
 - [ ] Create a Basic Base Defense Game
-    - [ ] shoot projectiles
+    - [x] shoot projectiles
     - [ ] create enemies
     - [ ] detect collision
     - [ ] remove offscreen projectiles
@@ -97,6 +97,11 @@ _Below is an example of how you can instruct your audience on installing and set
   
 - [ ] Movement, Enemies, and Enhanced Interaction
     - [ ] player movement
+    - [ ] homing enemies
+    - [ ] spinning enemies
+    - [ ] homing-spinning enemies
+    - [ ] power ups
+    - [ ] dynamic score labels
 
 See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
