@@ -102,6 +102,12 @@ _Below is an example of how you can instruct your audience on installing and set
     - [ ] homing-spinning enemies
     - [ ] power ups
     - [ ] dynamic score labels
+    - [ ] interactive background particles
+    - [ ] sound effect
+    - [ ] background music
+    - [ ] screen resizing
+    - [ ] mobile events
+    - [ ] enhancing mobile performance
 
 See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
