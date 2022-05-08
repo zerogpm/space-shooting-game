@@ -85,7 +85,7 @@ _Below is an example of how you can instruct your audience on installing and set
 - [x] Fix docker compose set up
 - [ ] Create a Basic Base Defense Game
     - [x] shoot projectiles
-    - [ ] create enemies
+    - [x] create enemies
     - [ ] detect collision
     - [ ] remove offscreen projectiles
     - [ ] colorize game
