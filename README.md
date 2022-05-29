@@ -87,8 +87,8 @@ _Below is an example of how you can instruct your audience on installing and set
     - [x] shoot projectiles
     - [x] create enemies
     - [x] detect collision
-    - [ ] remove offscreen projectiles
-    - [ ] colorize game
+    - [x] remove offscreen projectiles
+    - [x] colorize game
     - [ ] shrink Enemies on Hit
     - [ ] create particle explosion on hit
     - [ ] add Score
