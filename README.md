@@ -86,7 +86,7 @@ _Below is an example of how you can instruct your audience on installing and set
 - [ ] Create a Basic Base Defense Game
     - [x] shoot projectiles
     - [x] create enemies
-    - [ ] detect collision
+    - [x] detect collision
     - [ ] remove offscreen projectiles
     - [ ] colorize game
     - [ ] shrink Enemies on Hit
