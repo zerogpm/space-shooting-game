@@ -83,20 +83,29 @@ _Below is an example of how you can instruct your audience on installing and set
 ## Roadmap
 
 - [x] Fix docker compose set up
-- [ ] Create a Basic Base Defense Game
+- [x] Create a Basic Base Defense Game
     - [x] shoot projectiles
     - [x] create enemies
     - [x] detect collision
     - [x] remove offscreen projectiles
     - [x] colorize game
     - [x] shrink Enemies on Hit
-    - [ ] create particle explosion on hit
-    - [ ] add Score
-    - [ ] add game over ui
-    - [ ] add restart button
-  
+    - [x] create particle explosion on hit
+    - [x] add Score
+    - [x] add game over ui
+    - [x] add restart button
+
+- [x] Modularize Codebase
+    - [x] break monolithic index.js into ES modules (src/ folder)
+    - [x] separate classes into Player.js, Enemy.js, Projectile.js
+    - [x] create InputHandler.js for keyboard input
+    - [x] create ScoreManager.js for HUD display
+    - [x] create game.js for game loop orchestration
+
 - [ ] Movement, Enemies, and Enhanced Interaction
-    - [ ] player movement
+    - [x] player movement (WASD, arrow keys, Q/E/Z/C diagonals)
+    - [x] shoot with spacebar or mouse click
+    - [x] difficulty progression (level system with scaling enemy speed and spawn rate)
     - [ ] homing enemies
     - [ ] spinning enemies
     - [ ] homing-spinning enemies

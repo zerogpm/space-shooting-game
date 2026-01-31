@@ -1,3 +1,58 @@
 body {
     margin: 0;
 }
+
+/* ─── Game Over Overlay ───────────────────────────────────────────
+   A full-screen overlay that appears when the player dies.
+   It sits on top of the canvas using fixed positioning and a high z-index,
+   with a dark semi-transparent background so you can still see the final game state. */
+
+#game-over-screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+
+    /* Center all content both horizontally and vertically */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    font-family: sans-serif;
+}
+
+/* When the game ends, JavaScript sets display to "flex" to show this overlay.
+   Using "flex" (instead of "block") activates the centering rules above. */
+#game-over-screen.visible {
+    display: flex;
+}
+
+#game-over-screen h1 {
+    font-size: 48px;
+    margin: 0 0 8px 0;
+}
+
+#final-score {
+    font-size: 28px;
+    margin: 0 0 32px 0;
+    opacity: 0.8;
+}
+
+#restart-button {
+    padding: 14px 40px;
+    font-size: 20px;
+    border: 2px solid white;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+#restart-button:hover {
+    background: white;
+    color: black;
+}

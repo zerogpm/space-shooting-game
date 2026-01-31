@@ -7,7 +7,18 @@
 </head>
 <body>
     <canvas></canvas>
+
+    <!-- Game Over overlay — hidden by default, shown when the player dies.
+         JavaScript adds the "visible" class to display it with flexbox centering. -->
+    <div id="game-over-screen">
+        <h1>Game Over</h1>
+        <p id="final-score">Score: 0</p>
+        <button id="restart-button">Try Again</button>
+    </div>
 </body>
+<!-- GSAP is loaded as a regular script (not a module) so it's available as a global.
+     ES module scripts are always "deferred" by the browser, meaning they run AFTER
+     regular scripts. This guarantees gsap is ready before our game code executes. -->
 <script src="gsap.js"></script>
-<script src="./index.js"></script>
+<script type="module" src="./src/main.js"></script>
 </html>
