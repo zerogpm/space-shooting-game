@@ -9,6 +9,7 @@ import { InputHandler } from './InputHandler.js'
 import { Particle } from './Particle.js'
 import { drawPlayers, drawEnemies, drawProjectiles, drawHUD } from './StateRenderer.js'
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './shared/constants.js'
+import { SoundManager } from './SoundManager.js'
 
 /**
  * Start the networked game client.
@@ -21,6 +22,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from './shared/constants.js'
  */
 export function startNetworkGame(canvas, context, networkClient, myPlayerId, initialState) {
   const input = new InputHandler()
+  const sound = new SoundManager()
   let latestState = initialState
   let animationId = null
   let lastSentDirection = null
@@ -337,8 +339,19 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
     canvas.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('keydown', handleSpacebarFire)
     input.destroy()
+    sound.destroy()
+  }
+
+  // ─── Mute Button ───────────────────────────────────────────
+  const muteButton = document.getElementById('mute-button')
+  if (muteButton) {
+    muteButton.onclick = () => {
+      const muted = sound.toggleMute()
+      muteButton.textContent = muted ? 'Unmute' : 'Mute'
+    }
   }
 
   // ─── Start ──────────────────────────────────────────────────
+  sound.playBGM()
   animate()
 }

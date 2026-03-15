@@ -70,10 +70,23 @@ _Below is an example of how you can instruct your audience on installing and set
    ```sh
    git clone https://github.com/zerogpm/space-shooting-game.git
    ```
-2. CD into you downloaded folder
+2. CD into your downloaded folder
    ```sh
-   docker compose up
+   ./game.sh build && ./game.sh start
    ```
+3. (Optional) Add audio files — create a `sounds/` folder and add your own audio files with these exact names:
+
+   | File | Purpose |
+   |------|---------|
+   | `sounds/bgm.mp3` | Background music (loops during gameplay) |
+   | `sounds/shoot.mp3` | Player fires a projectile |
+   | `sounds/hit.mp3` | Projectile hits an enemy (shrink) |
+   | `sounds/kill.mp3` | Enemy destroyed |
+   | `sounds/player-hit.mp3` | Player takes damage |
+   | `sounds/death.mp3` | Player dies |
+   | `sounds/challenger.mp3` | "A NEW CHALLENGER" announcement moment |
+
+   Audio files are not included in the repo due to size. The game works fine without them — any missing sound is simply skipped.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

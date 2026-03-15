@@ -13,6 +13,7 @@ import { Particle } from './Particle.js'
 import { InputHandler } from './InputHandler.js'
 import { ScoreManager } from './ScoreManager.js'
 import { circlesCollide } from './simulation/CollisionHelper.js'
+import { SoundManager } from './SoundManager.js'
 
 /**
  * Initialize and start the game.
@@ -372,6 +373,18 @@ export function startGame(canvas, context) {
 
       // Start a fresh game with the same canvas
       startGame(canvas, context)
+    }
+  }
+
+  // ─── Audio ─────────────────────────────────────────────────────
+  const sound = new SoundManager()
+  sound.playBGM()
+
+  const muteButton = document.getElementById('mute-button')
+  if (muteButton) {
+    muteButton.onclick = () => {
+      const muted = sound.toggleMute()
+      muteButton.textContent = muted ? 'Unmute' : 'Mute'
     }
   }
 

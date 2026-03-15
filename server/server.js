@@ -21,7 +21,10 @@ const MIME_TYPES = {
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg'
 }
 
 // ─── HTTP Server (Static Files) ─────────────────────────────────
@@ -41,7 +44,15 @@ const httpServer = createServer(async (request, response) => {
 
   try {
     const content = await readFile(fullPath)
-    response.writeHead(200, { 'Content-Type': contentType })
+
+    // Audio files get long cache headers — browser downloads once, then serves locally.
+    // This prevents the 9MB+ BGM from competing with WebSocket traffic on repeat visits.
+    const headers = { 'Content-Type': contentType }
+    if (['.mp3', '.wav', '.ogg'].includes(extension)) {
+      headers['Cache-Control'] = 'public, max-age=604800' // 7 days
+    }
+
+    response.writeHead(200, headers)
     response.end(content)
   } catch {
     response.writeHead(404)

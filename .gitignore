@@ -14,3 +14,6 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Audio files — too large for git. See README for expected files.
+sounds/

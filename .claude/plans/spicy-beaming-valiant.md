@@ -1,10 +1,17 @@
-# Fix: Auto-reconnect on server restart
+# Add background music
 
 ## Context
-When `game.sh restart` runs, the WebSocket drops. Player 2's client freezes showing "Disconnected" and requires a manual browser refresh.
+`sounds/bgm.mp3` is ready. Wire it into the game — looping, lower volume, starts when gameplay begins.
 
-## Fix
-On disconnect, show "Connection lost — Reconnecting..." and auto-reload the page after 2 seconds. This gives the server time to come back up, and the player gets a fresh connection + join screen.
+## Plan
+- Create `src/SoundManager.js` — handles audio playback. Methods: `playBGM()`, `stopBGM()`, `setVolume()`, `mute()`/`unmute()`.
+- Call `playBGM()` when `gameStart` message arrives in `networkGame.js` and when `startGame()` runs in `game.js` (offline).
+- Browsers block autoplay until user interaction — start music on first click/keypress if needed.
+- Add a mute button to the UI (small speaker icon in corner).
 
 ## Files
-- `src/networkGame.js` — update onDisconnect handler
+- `src/SoundManager.js` (new)
+- `src/networkGame.js` (play on gameStart)
+- `src/game.js` (play on start for offline)
+- `index.html` (add mute button)
+- `game.css` (style mute button)

@@ -26,8 +26,8 @@ get_port() {
 }
 
 get_local_ip() {
-  # Get the LAN IP address for other players to connect
-  ipconfig 2>/dev/null | grep "IPv4" | head -1 | sed 's/.*: //'
+  # Get the LAN IP via PowerShell — ipconfig outputs UTF-16 which breaks grep in Git Bash.
+  powershell -Command "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.IPAddress -like '192.168.*' -or \$_.IPAddress -like '10.*' } | Select-Object -First 1).IPAddress" 2>/dev/null | tr -d '\r'
 }
 
 start_game() {
