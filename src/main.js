@@ -1,20 +1,60 @@
 /**
  * main.js — Entry point for the game.
  *
- * This file sets up the canvas to fill the entire browser window,
- * gets the 2D drawing context, and hands everything off to the game module.
- * Keeping this file thin makes it easy to see how the game starts.
+ * Attempts to connect to the game server for networked multiplayer.
+ * If the server is unavailable, falls back to offline single-player mode.
  */
 import { startGame } from './game.js'
+import { startNetworkGame } from './networkGame.js'
+import { NetworkClient } from './NetworkClient.js'
 
 // Select the <canvas> element from the HTML and size it to fill the whole window.
-// The canvas is where all game graphics are drawn — it acts as the game screen.
 const canvas = document.querySelector('canvas')
 canvas.width = innerWidth
 canvas.height = innerHeight
 
-// The "2D context" is the drawing API that lets us render shapes, text, and images
-// onto the canvas. Every draw call in the game goes through this object.
 const context = canvas.getContext('2d')
 
-startGame(canvas, context)
+// Grab UI elements for the join screen
+const joinGameScreen = document.getElementById('join-game-screen')
+const joinGameButton = document.getElementById('join-game-button')
+
+// ─── Attempt Networked Connection ─────────────────────────────
+const networkClient = new NetworkClient()
+
+networkClient.connect()
+  .then((welcomeMessage) => {
+    const { playerId, status } = welcomeMessage
+
+    if (status === 'new') {
+      // First player — game starts immediately through the server.
+      // Wait for the gameStart message with initial state.
+      networkClient.onMessage((message) => {
+        if (message.type === 'gameStart') {
+          startNetworkGame(canvas, context, networkClient, message.yourPlayerId, message.state)
+        }
+      })
+    } else if (status === 'inProgress') {
+      // Game already running — show the join screen
+      if (joinGameScreen) joinGameScreen.classList.add('visible')
+
+      if (joinGameButton) {
+        joinGameButton.onclick = () => {
+          joinGameScreen.classList.remove('visible')
+          networkClient.sendJoinGame()
+
+          // Wait for gameStart message after joining
+          networkClient.onMessage((message) => {
+            if (message.type === 'gameStart') {
+              startNetworkGame(canvas, context, networkClient, message.yourPlayerId, message.state)
+            }
+          })
+        }
+      }
+    }
+  })
+  .catch(() => {
+    // Server unavailable — fall back to offline single-player
+    console.log('Server unavailable — starting offline mode')
+    startGame(canvas, context)
+  })

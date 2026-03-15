@@ -1,10 +1,11 @@
-version: "3.9"
-
 services:
-  nginx:
+  game-server:
     container_name: space-shooting
-    image: nginx
+    build: .
     ports:
-      - 80:80
+      - 80:3000
     volumes:
-      - ./:/usr/share/nginx/html/
+      - ./:/app
+      - /app/server/node_modules
+    working_dir: /app
+    command: node server/server.js

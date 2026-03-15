@@ -12,6 +12,7 @@ import { Enemy } from './Enemy.js'
 import { Particle } from './Particle.js'
 import { InputHandler } from './InputHandler.js'
 import { ScoreManager } from './ScoreManager.js'
+import { circlesCollide } from './simulation/CollisionHelper.js'
 
 /**
  * Initialize and start the game.
@@ -218,15 +219,10 @@ export function startGame(canvas, context) {
       const enemy = enemies[enemyIndex]
       enemy.update()
 
-      // Check if this enemy has reached the player.
-      // Math.hypot calculates the straight-line distance between two points.
-      // If the distance minus both radii is less than 1 pixel, the circles are touching.
-      const distanceToPlayer = Math.hypot(
-        player.positionX - enemy.positionX,
-        player.positionY - enemy.positionY
-      )
-
-      if (distanceToPlayer - player.radius - enemy.radius < 1) {
+      // Check if this enemy has reached the player using shared collision logic.
+      // circlesCollide uses Math.hypot to measure distance between circle centers,
+      // returning true if the distance minus both radii is less than 1 pixel.
+      if (circlesCollide(player, enemy)) {
         // Game over — stop the loop, stop all timers, clean up all event listeners
         cancelAnimationFrame(animationId)
         clearTimeout(spawnTimerId)
@@ -244,18 +240,15 @@ export function startGame(canvas, context) {
       // Check if any projectile has hit this enemy
       for (let projectileIndex = projectiles.length - 1; projectileIndex >= 0; projectileIndex--) {
         const projectile = projectiles[projectileIndex]
-        const distanceBetween = Math.hypot(
-          projectile.positionX - enemy.positionX,
-          projectile.positionY - enemy.positionY
-        )
-
-        // Collision detected — the projectile and enemy circles are overlapping
-        if (distanceBetween - enemy.radius - projectile.radius < 1) {
+        // Check if this projectile has hit this enemy using shared collision logic
+        if (circlesCollide(projectile, enemy)) {
           if (enemy.radius - 10 > 5) {
             // Enemy is big enough to survive: shrink it by 10px using GSAP animation.
             // GSAP smoothly interpolates the radius value over several frames,
             // creating a satisfying visual "crunch" effect instead of an instant size change.
-            gsap.to(enemy, { radius: enemy.radius - 10 })
+            // We target enemy.sim directly because GSAP needs to mutate the actual property,
+            // not go through the proxy getter/setter on the Enemy wrapper.
+            gsap.to(enemy.sim, { radius: enemy.sim.radius - 10 })
             scoreManager.addShrinkPoints()
             // Small chip explosion — 8 particles since the enemy survives
             spawnExplosion(enemy.positionX, enemy.positionY, enemy.color, 8)

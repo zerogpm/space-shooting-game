@@ -119,34 +119,32 @@ _Below is an example of how you can instruct your audience on installing and set
     - [ ] enhancing mobile performance
 
 - [ ] 2-Player Networked Multiplayer (PvP + Enemies)
-    - [ ] Phase 1: Separate simulation from rendering
-        - [ ] create src/simulation/ with PlayerSim, EnemySim, ProjectileSim (no canvas dependency)
-        - [ ] create CollisionHelper (extract circle-circle collision logic)
-        - [ ] create GameSim (server-ready game loop with physics + collisions)
-        - [ ] wrap existing entity classes around Sim counterparts
-    - [ ] Phase 2: WebSocket server + lobby
-        - [ ] create Node.js WebSocket server (ws package) on port 3000
-        - [ ] handle player connections, assign player IDs
-        - [ ] lobby UI (connect button, waiting for opponent screen)
-        - [ ] create NetworkClient.js (client-side WebSocket wrapper)
-        - [ ] update docker-compose.yml to run game server alongside Nginx
-    - [ ] Phase 3: Server-authoritative game loop
-        - [ ] server runs GameSim.tick() at 60/sec, broadcasts state snapshots
-        - [ ] clients send input (direction + mouse position) and fire events
-        - [ ] create ClientRenderer.js (renders state snapshots to canvas)
-        - [ ] create multiplayerGame.js (multiplayer client loop)
-        - [ ] both players visible on screen with distinct colors
-        - [ ] enemies target both players
-    - [ ] Phase 4: PvP combat + win/loss
-        - [ ] projectile-vs-player collision (your shots can hit opponent)
-        - [ ] win/lose screens (You Win! / You Lose! with both scores)
-        - [ ] rematch flow (both players request restart)
-    - [ ] Phase 5: Polish
-        - [ ] dual-player HUD (both scores, "YOU" label above own player)
-        - [ ] disconnect handling (opponent leaves = you win)
+    - [x] Phase 1: Separate simulation from rendering
+        - [x] create src/simulation/ with PlayerSim, EnemySim, ProjectileSim (no canvas dependency)
+        - [x] create CollisionHelper (extract circle-circle collision logic)
+        - [x] create GameSim (server-ready game loop with physics + collisions)
+        - [x] wrap existing entity classes around Sim counterparts
+    - [x] Phase 2+3: WebSocket server + arcade drop-in multiplayer
+        - [x] Node.js WebSocket server replaces Nginx (serves static files + game state)
+        - [x] auto-connect on page load, Player 1 plays through server immediately
+        - [x] GameSession manages tick loop, enemy spawning, level progression
+        - [x] NetworkClient.js (client-side WebSocket wrapper)
+        - [x] StateRenderer.js (renders server state snapshots to canvas)
+        - [x] networkGame.js (multiplayer client loop — input sending + rendering)
+        - [x] Player 2 sees "Game in Progress" with "Join Game" button
+        - [x] arcade drop-in: "A NEW CHALLENGER HAS ENTERED THE RING!" announcement
+        - [x] 2.5s dramatic pause with GSAP animation on join
+        - [x] both players visible with distinct colors (cyan/magenta)
+        - [x] dual-player HUD (P1 top-left, P2 top-right, level centered)
+        - [x] PvP: projectiles can hit other player, own projectiles pass through self
+        - [x] game-over detection (all players dead), restart flow
+        - [x] disconnect handling, offline fallback to single-player
+        - [x] Dockerfile + updated docker-compose.yml
+    - [ ] Phase 4: Polish (optional/future)
         - [ ] fire rate limiting (server-side anti-spam)
         - [ ] enemy targeting balance (aim at nearest player)
-    - [ ] Phase 6: Network optimization (optional/future)
+        - [ ] spectator mode when dead (watch remaining player)
+    - [ ] Phase 5: Network optimization (optional/future)
         - [ ] client-side prediction for own player movement
         - [ ] entity interpolation for smooth opponent rendering
         - [ ] delta compression (send only changes)

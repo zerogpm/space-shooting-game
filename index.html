@@ -15,6 +15,18 @@
         <p id="final-score">Score: 0</p>
         <button id="restart-button">Try Again</button>
     </div>
+
+    <!-- Join Game overlay — shown to Player 2 when a game is already in progress. -->
+    <div id="join-game-screen">
+        <h1>Game In Progress</h1>
+        <p>Another player is battling enemies!</p>
+        <button id="join-game-button">Join Game</button>
+    </div>
+
+    <!-- Challenger announcement — shown when a new player drops in mid-game. -->
+    <div id="challenger-screen">
+        <h1>A NEW CHALLENGER HAS ENTERED THE RING!</h1>
+    </div>
 </body>
 <!-- GSAP is loaded as a regular script (not a module) so it's available as a global.
      ES module scripts are always "deferred" by the browser, meaning they run AFTER
