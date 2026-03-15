@@ -1,17 +1,22 @@
-# Add background music
+# Pause Feature
 
 ## Context
-`sounds/bgm.mp3` is ready. Wire it into the game — looping, lower volume, starts when gameplay begins.
+Need a pause button that freezes the game for both players. Either player can pause/unpause.
 
 ## Plan
-- Create `src/SoundManager.js` — handles audio playback. Methods: `playBGM()`, `stopBGM()`, `setVolume()`, `mute()`/`unmute()`.
-- Call `playBGM()` when `gameStart` message arrives in `networkGame.js` and when `startGame()` runs in `game.js` (offline).
-- Browsers block autoplay until user interaction — start music on first click/keypress if needed.
-- Add a mute button to the UI (small speaker icon in corner).
+- Press `Escape` or click a pause button to toggle pause
+- Client sends `pause`/`unpause` message to server
+- Server sets `this.paused = true` (already exists in GameSession) and broadcasts `gamePaused { byPlayerId }` / `gameUnpaused`
+- Both clients show "Game Paused" overlay, game state stops updating
+- Either player can unpause
+
+## New messages
+- Client→Server: `togglePause`
+- Server→Client: `gamePaused { byPlayerId }`, `gameUnpaused`
 
 ## Files
-- `src/SoundManager.js` (new)
-- `src/networkGame.js` (play on gameStart)
-- `src/game.js` (play on start for offline)
-- `index.html` (add mute button)
-- `game.css` (style mute button)
+- `server/GameSession.js` — add `handleTogglePause(playerId)`
+- `server/server.js` — route `togglePause` message
+- `src/networkGame.js` — handle pause messages, Escape key, pause button
+- `index.html` — add pause overlay + pause button
+- `game.css` — style them

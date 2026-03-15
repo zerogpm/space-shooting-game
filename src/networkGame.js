@@ -57,6 +57,10 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   const spectatorBanner = document.getElementById('spectator-banner')
   const spectatorText = document.getElementById('spectator-text')
   const spectatorRetryButton = document.getElementById('spectator-retry-button')
+  const pauseScreen = document.getElementById('pause-screen')
+  const pauseMessage = document.getElementById('pause-message')
+  const resumeButton = document.getElementById('resume-button')
+  const pauseButton = document.getElementById('pause-button')
 
   // ─── Server Message Handling ────────────────────────────────
   networkClient.onMessage((message) => {
@@ -67,6 +71,11 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
         if (message.events && message.events.hits) {
           for (const hit of message.events.hits) {
             spawnExplosion(hit.positionX, hit.positionY, hit.color, hit.particleCount)
+
+            // Play sound effects based on hit type
+            if (hit.type === 'shrink') {
+              sound.playEffect('sounds/hit.mp3', 0.4)
+            }
 
             // Smooth shrink animation using GSAP — runs locally on each client
             if (hit.type === 'shrink' && typeof gsap !== 'undefined') {
@@ -105,6 +114,8 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
         if (gameOverScreen) gameOverScreen.classList.remove('visible')
         if (rematchScreen) rematchScreen.classList.remove('visible')
         if (spectatorBanner) spectatorBanner.classList.remove('visible')
+        if (pauseScreen) pauseScreen.classList.remove('visible')
+        if (pauseButton) pauseButton.textContent = 'Pause'
         if (restartButton) {
           restartButton.textContent = 'Try Again'
           restartButton.disabled = false
@@ -141,9 +152,39 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
         if (finalScoreText) finalScoreText.textContent += ' — Rematch declined'
         break
 
+      case 'gamePaused':
+        if (pauseScreen) {
+          const pausedBySelf = message.byPlayerId === myPlayerId
+          if (pauseMessage) {
+            pauseMessage.textContent = pausedBySelf
+              ? 'Press Escape or click Resume to continue'
+              : `Paused by ${message.byPlayerId.toUpperCase()}`
+          }
+          pauseScreen.classList.add('visible')
+        }
+        if (pauseButton) pauseButton.textContent = 'Resume'
+        sound.stopBGM()
+        break
+
+      case 'gameUnpaused':
+        if (pauseScreen) pauseScreen.classList.remove('visible')
+        if (pauseButton) pauseButton.textContent = 'Pause'
+        sound.playBGM()
+        break
+
+      case 'joinRequested':
+        // Player 2 wants to join while game is paused — ask for consent
+        showJoinRequest(message.fromPlayerId)
+        break
+
+      case 'joinDeclined':
+        // Player 1 declined the join request
+        break
+
       case 'playerDisconnected':
-        // Hide rematch screen if it was showing
+        // Hide rematch/pause screens if they were showing
         if (rematchScreen) rematchScreen.classList.remove('visible')
+        if (pauseScreen) pauseScreen.classList.remove('visible')
         break
     }
   })
@@ -227,12 +268,14 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
     const targetX = clickEvent.clientX / scaleX
     const targetY = clickEvent.clientY / scaleY
     networkClient.sendFire(targetX, targetY)
+    sound.playEffect('sounds/shoot.mp3', 0.3)
   }
 
   function handleSpacebarFire(keyEvent) {
     if (keyEvent.code === 'Space') {
       keyEvent.preventDefault()
       networkClient.sendFire(mouseServerX, mouseServerY)
+      sound.playEffect('sounds/shoot.mp3', 0.3)
     }
   }
 
@@ -303,9 +346,25 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
     }
   }
 
-  // ─── Rematch Request UI (shown to the alive player) ────────
+  // ─── Request UI (shown to Player 1 for rematch or join requests) ────────
+  let pendingRequestType = null // 'rematch' or 'join'
+
   function showRematchRequest(fromPlayerId) {
+    pendingRequestType = 'rematch'
     if (rematchScreen) {
+      rematchScreen.querySelector('h1').textContent = 'Rematch Requested!'
+      const msg = rematchScreen.querySelector('#rematch-message')
+      if (msg) msg.textContent = 'The other player wants a rematch.'
+      rematchScreen.classList.add('visible')
+    }
+  }
+
+  function showJoinRequest(fromPlayerId) {
+    pendingRequestType = 'join'
+    if (rematchScreen) {
+      rematchScreen.querySelector('h1').textContent = 'Player Wants to Join!'
+      const msg = rematchScreen.querySelector('#rematch-message')
+      if (msg) msg.textContent = `${fromPlayerId.toUpperCase()} wants to join the game.`
       rematchScreen.classList.add('visible')
     }
   }
@@ -321,14 +380,24 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   if (acceptRematchButton) {
     acceptRematchButton.onclick = () => {
       if (rematchScreen) rematchScreen.classList.remove('visible')
-      networkClient.sendAcceptRematch()
+      if (pendingRequestType === 'join') {
+        networkClient.send({ type: 'acceptJoin' })
+      } else {
+        networkClient.sendAcceptRematch()
+      }
+      pendingRequestType = null
     }
   }
 
   if (declineRematchButton) {
     declineRematchButton.onclick = () => {
       if (rematchScreen) rematchScreen.classList.remove('visible')
-      networkClient.sendDeclineRematch()
+      if (pendingRequestType === 'join') {
+        networkClient.send({ type: 'declineJoin' })
+      } else {
+        networkClient.sendDeclineRematch()
+      }
+      pendingRequestType = null
     }
   }
 
@@ -338,8 +407,29 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
     canvas.removeEventListener('click', handleCanvasClick)
     canvas.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('keydown', handleSpacebarFire)
+    window.removeEventListener('keydown', handleEscapeKey)
     input.destroy()
     sound.destroy()
+  }
+
+  // ─── Pause Controls ────────────────────────────────────────
+  function handleEscapeKey(keyEvent) {
+    if (keyEvent.code === 'Escape') {
+      networkClient.sendTogglePause()
+    }
+  }
+  window.addEventListener('keydown', handleEscapeKey)
+
+  if (pauseButton) {
+    pauseButton.onclick = () => {
+      networkClient.sendTogglePause()
+    }
+  }
+
+  if (resumeButton) {
+    resumeButton.onclick = () => {
+      networkClient.sendTogglePause()
+    }
   }
 
   // ─── Mute Button ───────────────────────────────────────────

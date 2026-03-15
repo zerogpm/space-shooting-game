@@ -204,6 +204,16 @@ webSocketServer.on('connection', (webSocket) => {
         gameSession.handleJoinGame(playerId, (msg) => sendToClient(webSocket, msg))
         break
 
+      case 'togglePause': {
+        const paused = gameSession.handleTogglePause(playerId)
+        if (paused) {
+          broadcastToAll({ type: 'gamePaused', byPlayerId: playerId })
+        } else {
+          broadcastToAll({ type: 'gameUnpaused' })
+        }
+        break
+      }
+
       case 'requestRestart': {
         const result = gameSession.handleRestartRequest(playerId)
         if (result === 'restart') {
@@ -224,6 +234,14 @@ webSocketServer.on('connection', (webSocket) => {
 
       case 'declineRematch':
         gameSession.handleDeclineRematch()
+        break
+
+      case 'acceptJoin':
+        gameSession.handleAcceptJoin()
+        break
+
+      case 'declineJoin':
+        gameSession.handleDeclineJoin()
         break
     }
   })

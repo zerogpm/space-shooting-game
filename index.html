@@ -8,8 +8,18 @@
 <body>
     <canvas></canvas>
 
-    <!-- Mute button — always visible in the corner -->
-    <button id="mute-button">Mute</button>
+    <!-- Control buttons — always visible in the corner -->
+    <div id="game-controls">
+        <button id="pause-button">Pause</button>
+        <button id="mute-button">Mute</button>
+    </div>
+
+    <!-- Pause overlay — shown when either player pauses -->
+    <div id="pause-screen">
+        <h1>Game Paused</h1>
+        <p id="pause-message">Press Escape or click Resume to continue</p>
+        <button id="resume-button">Resume</button>
+    </div>
 
     <!-- Game Over overlay — hidden by default, shown when the player dies.
          JavaScript adds the "visible" class to display it with flexbox centering. -->

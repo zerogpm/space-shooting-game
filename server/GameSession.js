@@ -17,7 +17,10 @@ export class GameSession {
     this.playerInputs = new Map()
     this.lastFireTimes = new Map() // playerId → timestamp for fire rate limiting
     this.paused = false
+    this.pausedByPlayerId = null
+    this.pausedByChallenger = false
     this.pendingRematchFrom = null // playerId requesting rematch while other is alive
+    this.pendingJoinFrom = null // playerId requesting to join during pause
 
     this.tickIntervalId = null
     this.spawnTimerId = null
@@ -97,6 +100,19 @@ export class GameSession {
     }, 10000)
   }
 
+  /**
+   * Toggle pause state. Either player can pause/unpause.
+   * Returns the new paused state.
+   */
+  handleTogglePause(playerId) {
+    // Don't allow pause toggle during challenger announcement (already paused for that)
+    if (this.paused && this.pausedByChallenger) return this.paused
+
+    this.paused = !this.paused
+    this.pausedByPlayerId = this.paused ? playerId : null
+    return this.paused
+  }
+
   stopLoops() {
     if (this.tickIntervalId) clearInterval(this.tickIntervalId)
     if (this.spawnTimerId) clearTimeout(this.spawnTimerId)
@@ -126,13 +142,35 @@ export class GameSession {
       return this.gameSim.getStateSnapshot()
     }
 
+    // If game is paused by a player, ask that player for consent before joining
+    if (this.paused && !this.pausedByChallenger) {
+      this.pendingJoinFrom = playerId
+      this.pendingJoinSendToPlayer = sendToPlayer
+      const alivePlayer = this.gameSim.players.find(player => player.alive)
+      if (alivePlayer) {
+        this.sendToPlayer(alivePlayer.id, {
+          type: 'joinRequested',
+          fromPlayerId: playerId
+        })
+      }
+      return null
+    }
+
+    // Not paused or paused by challenger — proceed with join
+    return this.performJoin(playerId, sendToPlayer)
+  }
+
+  /**
+   * Actually add the player to the game with challenger announcement.
+   * Called by handleJoinGame (normal flow) and handleAcceptJoin (after consent).
+   */
+  performJoin(playerId, sendToPlayer) {
     // Calculate a safe spawn position — opposite side from Player 1
     const player1 = this.gameSim.players[0]
     let spawnX = CANVAS_WIDTH / 4
     let spawnY = CANVAS_HEIGHT / 2
 
     if (player1 && player1.alive) {
-      // Spawn on the opposite side of the canvas from Player 1
       spawnX = player1.positionX < CANVAS_WIDTH / 2
         ? CANVAS_WIDTH * 3 / 4
         : CANVAS_WIDTH / 4
@@ -146,26 +184,25 @@ export class GameSession {
 
     // Pause the game for the dramatic announcement
     this.paused = true
+    this.pausedByChallenger = true
 
     const state = this.gameSim.getStateSnapshot()
 
-    // Send game state to the joining player
     sendToPlayer({
       type: 'gameStart',
       state,
       yourPlayerId: playerId
     })
 
-    // Broadcast challenger announcement to all players
     this.broadcast({
       type: 'challengerJoined',
       newPlayerId: playerId,
       playerColor: color
     })
 
-    // Resume after dramatic pause
     setTimeout(() => {
       this.paused = false
+      this.pausedByChallenger = false
       this.broadcast({ type: 'challengerReady' })
     }, 2500)
 
@@ -286,6 +323,37 @@ export class GameSession {
     if (this.pendingRematchFrom) {
       this.sendToPlayer(this.pendingRematchFrom, { type: 'rematchDeclined' })
       this.pendingRematchFrom = null
+    }
+  }
+
+  /**
+   * Accept a pending join request. Unpauses the game and proceeds with the join.
+   */
+  handleAcceptJoin() {
+    if (!this.pendingJoinFrom || !this.pendingJoinSendToPlayer) return
+
+    // Unpause first
+    this.paused = false
+    this.pausedByPlayerId = null
+
+    // Now proceed with the normal join flow
+    const playerId = this.pendingJoinFrom
+    const sendToPlayer = this.pendingJoinSendToPlayer
+    this.pendingJoinFrom = null
+    this.pendingJoinSendToPlayer = null
+
+    // Call the join logic directly (skip the pause check since we just unpaused)
+    this.performJoin(playerId, sendToPlayer)
+  }
+
+  /**
+   * Decline a pending join request.
+   */
+  handleDeclineJoin() {
+    if (this.pendingJoinFrom) {
+      this.sendToPlayer(this.pendingJoinFrom, { type: 'joinDeclined' })
+      this.pendingJoinFrom = null
+      this.pendingJoinSendToPlayer = null
     }
   }
 

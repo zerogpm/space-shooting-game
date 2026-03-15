@@ -112,6 +112,13 @@ export class NetworkClient {
   }
 
   /**
+   * Toggle pause state on the server.
+   */
+  sendTogglePause() {
+    this.send({ type: 'togglePause' })
+  }
+
+  /**
    * Send a JSON message to the server.
    */
   send(message) {
