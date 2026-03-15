@@ -15,6 +15,7 @@ export class GameSession {
     this.sendToPlayer = sendToPlayer
     this.gameSim = new GameSim(CANVAS_WIDTH, CANVAS_HEIGHT)
     this.playerInputs = new Map()
+    this.lastFireTimes = new Map() // playerId → timestamp for fire rate limiting
     this.paused = false
     this.pendingRematchFrom = null // playerId requesting rematch while other is alive
 
@@ -181,8 +182,14 @@ export class GameSession {
 
   /**
    * Fire a projectile for a player toward a target.
+   * Rate limited to one shot per 100ms (10 shots/sec) to prevent spam.
    */
   handleFire(playerId, targetX, targetY) {
+    const now = Date.now()
+    const lastFire = this.lastFireTimes.get(playerId) || 0
+    if (now - lastFire < 100) return // too fast, silently ignore
+
+    this.lastFireTimes.set(playerId, now)
     this.gameSim.fireProjectile(playerId, targetX, targetY)
   }
 
@@ -207,6 +214,7 @@ export class GameSession {
     this.stopLoops()
     this.gameSim = new GameSim(CANVAS_WIDTH, CANVAS_HEIGHT)
     this.playerInputs.clear()
+    this.lastFireTimes.clear()
     this.paused = false
 
     // Add players at spread-out starting positions

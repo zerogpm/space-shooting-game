@@ -52,6 +52,9 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   const rematchScreen = document.getElementById('rematch-screen')
   const acceptRematchButton = document.getElementById('accept-rematch-button')
   const declineRematchButton = document.getElementById('decline-rematch-button')
+  const spectatorBanner = document.getElementById('spectator-banner')
+  const spectatorText = document.getElementById('spectator-text')
+  const spectatorRetryButton = document.getElementById('spectator-retry-button')
 
   // ─── Server Message Handling ────────────────────────────────
   networkClient.onMessage((message) => {
@@ -99,9 +102,14 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
         if (joinGameScreen) joinGameScreen.classList.remove('visible')
         if (gameOverScreen) gameOverScreen.classList.remove('visible')
         if (rematchScreen) rematchScreen.classList.remove('visible')
+        if (spectatorBanner) spectatorBanner.classList.remove('visible')
         if (restartButton) {
           restartButton.textContent = 'Try Again'
           restartButton.disabled = false
+        }
+        if (spectatorRetryButton) {
+          spectatorRetryButton.textContent = 'Try Again'
+          spectatorRetryButton.disabled = false
         }
         break
 
@@ -254,14 +262,17 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   }
 
   function showDeathMessage() {
-    if (finalScoreText) finalScoreText.textContent = `Score: ${latestState.scores[myPlayerId] || 0}`
-    if (gameOverScreen) {
-      gameOverScreen.querySelector('h1').textContent = 'You Died!'
-      gameOverScreen.classList.add('visible')
+    // Show small spectator banner instead of full overlay so the player can watch
+    if (spectatorBanner) {
+      if (spectatorText) spectatorText.textContent = `You Died! Score: ${latestState.scores[myPlayerId] || 0} — Watching...`
+      spectatorBanner.classList.add('visible')
     }
   }
 
   function showGameOver(scores) {
+    // Hide spectator banner — full game over overlay takes over
+    if (spectatorBanner) spectatorBanner.classList.remove('visible')
+
     if (gameOverScreen) {
       gameOverScreen.querySelector('h1').textContent = 'Game Over'
 
@@ -290,6 +301,14 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   function showRematchRequest(fromPlayerId) {
     if (rematchScreen) {
       rematchScreen.classList.add('visible')
+    }
+  }
+
+  if (spectatorRetryButton) {
+    spectatorRetryButton.onclick = () => {
+      networkClient.sendRestart()
+      spectatorRetryButton.textContent = 'Waiting...'
+      spectatorRetryButton.disabled = true
     }
   }
 

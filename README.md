@@ -140,10 +140,10 @@ _Below is an example of how you can instruct your audience on installing and set
         - [x] game-over detection (all players dead), restart flow
         - [x] disconnect handling, offline fallback to single-player
         - [x] Dockerfile + updated docker-compose.yml
-    - [ ] Phase 4: Polish (optional/future)
-        - [ ] fire rate limiting (server-side anti-spam)
-        - [ ] enemy targeting balance (aim at nearest player)
-        - [ ] spectator mode when dead (watch remaining player)
+    - [x] Phase 4: Polish
+        - [x] fire rate limiting (server-side, 100ms cooldown per player)
+        - [x] enemy targeting balance (aim at nearest player)
+        - [x] spectator mode when dead (watch remaining player with banner)
     - [ ] Phase 5: Network optimization (optional/future)
         - [ ] client-side prediction for own player movement
         - [ ] entity interpolation for smooth opponent rendering

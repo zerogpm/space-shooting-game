@@ -78,9 +78,6 @@ export class GameSim {
     const alivePlayers = this.players.filter(player => player.alive)
     if (alivePlayers.length === 0) return null
 
-    // Pick a random alive player to aim at
-    const targetPlayer = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]
-
     const radius = Math.random() * (30 - 4) + 4
 
     let spawnX
@@ -92,6 +89,19 @@ export class GameSim {
     } else {
       spawnX = Math.random() * this.canvasWidth
       spawnY = Math.random() < 0.5 ? 0 - radius : this.canvasHeight + radius
+    }
+
+    // Aim at the nearest alive player to the spawn point.
+    // This naturally distributes enemies between players — each player
+    // gets threatened by enemies spawning on their side of the screen.
+    let targetPlayer = alivePlayers[0]
+    let closestDistance = Math.hypot(targetPlayer.positionX - spawnX, targetPlayer.positionY - spawnY)
+    for (let index = 1; index < alivePlayers.length; index++) {
+      const distance = Math.hypot(alivePlayers[index].positionX - spawnX, alivePlayers[index].positionY - spawnY)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        targetPlayer = alivePlayers[index]
+      }
     }
 
     const color = `hsl(${Math.random() * 360}, 50%, 50%)`

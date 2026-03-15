@@ -92,6 +92,44 @@ body {
     color: black;
 }
 
+/* ─── Spectator Banner ───────────────────────────────────────── */
+
+#spectator-banner {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-family: sans-serif;
+    font-size: 20px;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+#spectator-banner.visible {
+    display: flex;
+}
+
+#spectator-retry-button {
+    padding: 6px 20px;
+    font-size: 16px;
+    border: 2px solid white;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+#spectator-retry-button:hover {
+    background: white;
+    color: black;
+}
+
 /* ─── Join Game Overlay ──────────────────────────────────────── */
 
 #join-game-screen {
