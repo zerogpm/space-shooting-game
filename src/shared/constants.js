@@ -9,6 +9,9 @@ export const CANVAS_HEIGHT = 576
 export const TICK_RATE = 60
 export const PLAYER_RADIUS = 10
 
+export const PLAYER_MAX_HEALTH = 100
+export const PROJECTILE_DAMAGE = 20
+
 export const PLAYER_COLORS = {
   p1: 'cyan',
   p2: 'magenta'

@@ -148,12 +148,16 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
 
   networkClient.onDisconnect(() => {
     cleanup()
-    // Show a disconnect message in the game-over overlay
-    if (finalScoreText) finalScoreText.textContent = 'Connection lost'
+    // Show a brief disconnect message, then auto-reload to reconnect.
+    // This handles server restarts cleanly — the page reloads and either
+    // starts a new game or shows the join screen if another player is active.
     if (gameOverScreen) {
-      gameOverScreen.querySelector('h1').textContent = 'Disconnected'
+      gameOverScreen.querySelector('h1').textContent = 'Connection Lost'
+      if (finalScoreText) finalScoreText.textContent = 'Reconnecting...'
       gameOverScreen.classList.add('visible')
+      if (restartButton) restartButton.style.display = 'none'
     }
+    setTimeout(() => window.location.reload(), 2000)
   })
 
   // ─── Particle Explosions (Client-Side Only) ─────────────────

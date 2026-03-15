@@ -220,9 +220,17 @@ export function startGame(canvas, context) {
       enemy.update()
 
       // Check if this enemy has reached the player using shared collision logic.
-      // circlesCollide uses Math.hypot to measure distance between circle centers,
-      // returning true if the distance minus both radii is less than 1 pixel.
+      // Damage scales with enemy size — bigger enemies hurt more.
       if (circlesCollide(player, enemy)) {
+        const damage = Math.round(enemy.radius)
+        const killed = player.sim.takeDamage(damage)
+
+        // Remove the enemy that hit the player
+        spawnExplosion(enemy.positionX, enemy.positionY, enemy.color, 8)
+        enemies.splice(enemyIndex, 1)
+
+        if (!killed) continue // player survived — keep playing
+
         // Game over — stop the loop, stop all timers, clean up all event listeners
         cancelAnimationFrame(animationId)
         clearTimeout(spawnTimerId)

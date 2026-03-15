@@ -22,6 +22,13 @@ const joinGameButton = document.getElementById('join-game-button')
 // ─── Attempt Networked Connection ─────────────────────────────
 const networkClient = new NetworkClient()
 
+// Auto-reload if connection drops before the game starts (e.g., server restart
+// while Player 2 is on the join screen). Once startNetworkGame runs, it takes
+// over disconnect handling with its own onDisconnect.
+networkClient.onDisconnect(() => {
+  setTimeout(() => window.location.reload(), 2000)
+})
+
 networkClient.connect()
   .then((welcomeMessage) => {
     const { playerId, status } = welcomeMessage

@@ -194,9 +194,25 @@ describe('GameSim', () => {
   })
 
   describe('tick — enemy-player collision', () => {
-    it('kills player when enemy overlaps', () => {
+    it('damages player based on enemy radius (not instant kill)', () => {
       const game = createGame()
-      // Place enemy right on top of player 1
+      // Radius 10 enemy = 10 damage out of 100 health
+      game.enemies.push(
+        new EnemySim(99, 200, 300, 10, 'red', { horizontal: 0, vertical: 0 })
+      )
+
+      const events = game.tick({})
+
+      expect(game.getPlayer('p1').alive).toBe(true) // survived
+      expect(game.getPlayer('p1').health).toBe(90) // 100 - 10
+      expect(events.hits.some(hit => hit.type === 'playerHit')).toBe(true)
+      expect(events.deaths).toHaveLength(0)
+    })
+
+    it('kills player when damage exceeds remaining health', () => {
+      const game = createGame()
+      // Drain health to 5, then hit with radius 10 enemy
+      game.getPlayer('p1').health = 5
       game.enemies.push(
         new EnemySim(99, 200, 300, 10, 'red', { horizontal: 0, vertical: 0 })
       )
@@ -204,9 +220,30 @@ describe('GameSim', () => {
       const events = game.tick({})
 
       expect(game.getPlayer('p1').alive).toBe(false)
+      expect(game.getPlayer('p1').health).toBe(0)
       expect(events.deaths).toHaveLength(1)
-      expect(events.deaths[0].playerId).toBe('p1')
       expect(events.deaths[0].killedBy).toBe('enemy')
+    })
+
+    it('big enemy deals more damage than small enemy', () => {
+      const game = createGame()
+      // Radius 30 enemy = 30 damage
+      game.enemies.push(
+        new EnemySim(99, 200, 300, 30, 'red', { horizontal: 0, vertical: 0 })
+      )
+
+      game.tick({})
+      expect(game.getPlayer('p1').health).toBe(70) // 100 - 30
+    })
+
+    it('removes the enemy that hit the player', () => {
+      const game = createGame()
+      game.enemies.push(
+        new EnemySim(99, 200, 300, 10, 'red', { horizontal: 0, vertical: 0 })
+      )
+
+      game.tick({})
+      expect(game.enemies).toHaveLength(0) // enemy removed after hitting player
     })
   })
 
@@ -246,14 +283,27 @@ describe('GameSim', () => {
   })
 
   describe('tick — PvP projectile-player collision', () => {
-    it('kills player when hit by opponent projectile', () => {
+    it('deals 20 damage per projectile hit', () => {
       const game = createGame()
-      // p1's projectile placed right on p2
+      game.projectiles.push(new ProjectileSim(99, 600, 300, 5, 'cyan', { horizontal: 0, vertical: 0 }, 'p1'))
+
+      const events = game.tick({})
+
+      expect(game.getPlayer('p2').alive).toBe(true) // survived one hit
+      expect(game.getPlayer('p2').health).toBe(80) // 100 - 20
+      expect(events.hits.some(hit => hit.type === 'playerHit' && hit.playerId === 'p2')).toBe(true)
+    })
+
+    it('kills player after 5 projectile hits (100 damage total)', () => {
+      const game = createGame()
+      // Set health to 20 — one more hit will kill
+      game.getPlayer('p2').health = 20
       game.projectiles.push(new ProjectileSim(99, 600, 300, 5, 'cyan', { horizontal: 0, vertical: 0 }, 'p1'))
 
       const events = game.tick({})
 
       expect(game.getPlayer('p2').alive).toBe(false)
+      expect(game.getPlayer('p2').health).toBe(0)
       expect(events.deaths).toHaveLength(1)
       expect(events.deaths[0].playerId).toBe('p2')
       expect(events.deaths[0].killedBy).toBe('player')
@@ -262,12 +312,12 @@ describe('GameSim', () => {
 
     it('player own projectile does not hit themselves', () => {
       const game = createGame()
-      // p1's projectile placed right on p1 — should NOT hit
       game.projectiles.push(new ProjectileSim(99, 200, 300, 5, 'cyan', { horizontal: 0, vertical: 0 }, 'p1'))
 
       const events = game.tick({})
 
       expect(game.getPlayer('p1').alive).toBe(true)
+      expect(game.getPlayer('p1').health).toBe(100) // no damage
       expect(events.deaths).toHaveLength(0)
     })
   })

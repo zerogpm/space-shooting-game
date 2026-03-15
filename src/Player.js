@@ -29,6 +29,9 @@ export class Player {
   set speed(value) { this.sim.speed = value }
   get alive() { return this.sim.alive }
   set alive(value) { this.sim.alive = value }
+  get health() { return this.sim.health }
+  set health(value) { this.sim.health = value }
+  get maxHealth() { return this.sim.maxHealth }
 
   draw() {
     this.context.beginPath()

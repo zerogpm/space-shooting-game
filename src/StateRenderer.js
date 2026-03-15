@@ -29,13 +29,40 @@ export function drawPlayers(context, players, myPlayerId, scaleX, scaleY) {
     context.fillStyle = player.color
     context.fill()
 
-    // Draw a label above the player
+    // Draw the health bar above the player.
+    // Color shifts from green (healthy) to yellow (hurt) to red (critical).
+    const barWidth = screenRadius * 4
+    const barHeight = Math.max(4, screenRadius * 0.4)
+    const barX = screenX - barWidth / 2
+    const barY = screenY - screenRadius - barHeight - 4
+    const healthPercent = (player.health || 0) / (player.maxHealth || 100)
+
+    // Background (dark gray)
+    context.fillStyle = 'rgba(50, 50, 50, 0.8)'
+    context.fillRect(barX, barY, barWidth, barHeight)
+
+    // Health fill — green to yellow to red
+    if (healthPercent > 0.6) {
+      context.fillStyle = '#22cc22'
+    } else if (healthPercent > 0.3) {
+      context.fillStyle = '#cccc22'
+    } else {
+      context.fillStyle = '#cc2222'
+    }
+    context.fillRect(barX, barY, barWidth * healthPercent, barHeight)
+
+    // Border
+    context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+    context.lineWidth = 1
+    context.strokeRect(barX, barY, barWidth, barHeight)
+
+    // Draw a label above the health bar
     const label = player.id === myPlayerId ? 'YOU' : player.id.toUpperCase()
     context.fillStyle = 'white'
     context.font = `${Math.round(12 * Math.min(scaleX, scaleY))}px sans-serif`
     context.textAlign = 'center'
     context.textBaseline = 'bottom'
-    context.fillText(label, screenX, screenY - screenRadius - 4)
+    context.fillText(label, screenX, barY - 2)
   }
 }
 

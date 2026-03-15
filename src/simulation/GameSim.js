@@ -205,12 +205,42 @@ export class GameSim {
       const enemy = this.enemies[enemyIndex]
       enemy.update()
 
-      // Check enemy-player collisions
+      // Check enemy-player collisions — damage scales with enemy size.
+      // A radius-30 enemy deals 30 damage, a radius-4 enemy deals 4 damage.
       for (const player of this.players) {
         if (!player.alive) continue
         if (circlesCollide(player, enemy)) {
-          player.alive = false
-          events.deaths.push({ playerId: player.id, killedBy: 'enemy', enemyId: enemy.id })
+          const damage = Math.round(enemy.radius)
+          const killed = player.takeDamage(damage)
+
+          // Knockback — push player away from enemy. Bigger enemies push harder.
+          const knockbackAngle = Math.atan2(
+            player.positionY - enemy.positionY,
+            player.positionX - enemy.positionX
+          )
+          const knockbackForce = enemy.radius * 0.5
+          player.applyKnockback(
+            Math.cos(knockbackAngle) * knockbackForce,
+            Math.sin(knockbackAngle) * knockbackForce
+          )
+
+          events.hits.push({
+            type: 'playerHit',
+            playerId: player.id,
+            damage,
+            health: player.health,
+            positionX: player.positionX,
+            positionY: player.positionY,
+            color: player.color,
+            particleCount: 4
+          })
+          if (killed) {
+            events.deaths.push({ playerId: player.id, killedBy: 'enemy', enemyId: enemy.id })
+          }
+          // Remove the enemy that hit the player so it doesn't keep dealing damage
+          events.removedEnemies.push(enemy.id)
+          this.enemies.splice(enemyIndex, 1)
+          break
         }
       }
 
@@ -222,6 +252,10 @@ export class GameSim {
           if (enemy.radius - 10 > 5) {
             // Shrink the enemy — no GSAP on server, instant change
             enemy.radius -= 10
+
+            // Knockback — push enemy in the projectile's travel direction
+            const projAngle = Math.atan2(projectile.velocity.vertical, projectile.velocity.horizontal)
+            enemy.applyKnockback(Math.cos(projAngle) * 5, Math.sin(projAngle) * 5)
             this.scores[projectile.ownerId] = (this.scores[projectile.ownerId] || 0) + 10
             events.hits.push({
               type: 'shrink',
@@ -265,11 +299,49 @@ export class GameSim {
         if (projectile.ownerId === player.id) continue
 
         if (circlesCollide(projectile, player)) {
-          player.alive = false
-          events.deaths.push({ playerId: player.id, killedBy: 'player', attackerId: projectile.ownerId })
+          const damage = 20 // fixed PvP projectile damage — 5 shots to kill
+          const killed = player.takeDamage(damage)
+
+          // Knockback — push player in the projectile's travel direction
+          const projAngle = Math.atan2(projectile.velocity.vertical, projectile.velocity.horizontal)
+          player.applyKnockback(Math.cos(projAngle) * 8, Math.sin(projAngle) * 8)
+
+          events.hits.push({
+            type: 'playerHit',
+            playerId: player.id,
+            damage,
+            health: player.health,
+            positionX: player.positionX,
+            positionY: player.positionY,
+            color: player.color,
+            particleCount: 4
+          })
+          if (killed) {
+            events.deaths.push({ playerId: player.id, killedBy: 'player', attackerId: projectile.ownerId })
+          }
           events.removedProjectiles.push(projectile.id)
           this.projectiles.splice(projIndex, 1)
           break
+        }
+      }
+    }
+
+    // Check player-player collisions — push both apart, no damage
+    for (let indexA = 0; indexA < this.players.length; indexA++) {
+      for (let indexB = indexA + 1; indexB < this.players.length; indexB++) {
+        const playerA = this.players[indexA]
+        const playerB = this.players[indexB]
+        if (!playerA.alive || !playerB.alive) continue
+
+        if (circlesCollide(playerA, playerB)) {
+          const angle = Math.atan2(
+            playerB.positionY - playerA.positionY,
+            playerB.positionX - playerA.positionX
+          )
+          const force = 6
+          // Push A away from B, and B away from A
+          playerA.applyKnockback(-Math.cos(angle) * force, -Math.sin(angle) * force)
+          playerB.applyKnockback(Math.cos(angle) * force, Math.sin(angle) * force)
         }
       }
     }
@@ -289,7 +361,9 @@ export class GameSim {
         positionY: player.positionY,
         radius: player.radius,
         color: player.color,
-        alive: player.alive
+        alive: player.alive,
+        health: player.health,
+        maxHealth: player.maxHealth
       })),
       enemies: this.enemies.map(enemy => ({
         id: enemy.id,

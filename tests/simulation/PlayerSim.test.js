@@ -52,6 +52,46 @@ describe('PlayerSim', () => {
     expect(player.positionY).toBe(300)
   })
 
+  it('starts with 100 health', () => {
+    const player = createPlayer()
+
+    expect(player.health).toBe(100)
+    expect(player.maxHealth).toBe(100)
+    expect(player.alive).toBe(true)
+  })
+
+  it('takeDamage reduces health', () => {
+    const player = createPlayer()
+    player.takeDamage(30)
+
+    expect(player.health).toBe(70)
+    expect(player.alive).toBe(true)
+  })
+
+  it('takeDamage kills player at 0 health', () => {
+    const player = createPlayer()
+    const killed = player.takeDamage(100)
+
+    expect(player.health).toBe(0)
+    expect(player.alive).toBe(false)
+    expect(killed).toBe(true)
+  })
+
+  it('health cannot go below 0', () => {
+    const player = createPlayer()
+    player.takeDamage(150)
+
+    expect(player.health).toBe(0)
+  })
+
+  it('takeDamage on dead player does nothing', () => {
+    const player = createPlayer()
+    player.alive = false
+    const killed = player.takeDamage(50)
+
+    expect(killed).toBe(false)
+  })
+
   it('alive can be set to false', () => {
     const player = createPlayer()
     player.alive = false

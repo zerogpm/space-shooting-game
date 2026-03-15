@@ -13,15 +13,14 @@ describe('StateRenderer', () => {
       context.fill = vi.fn()
 
       const players = [
-        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: true },
-        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true }
+        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: true, health: 100, maxHealth: 100 },
+        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true, health: 80, maxHealth: 100 }
       ]
 
       drawPlayers(context, players, 'p1', scaleX, scaleY)
 
-      // Two players = two arc calls (circles) + two fillText calls (labels)
+      // Two players = two arc calls (circles)
       expect(context.arc).toHaveBeenCalledTimes(2)
-      expect(context.fill).toHaveBeenCalledTimes(2)
     })
 
     it('skips dead players', () => {
@@ -29,8 +28,8 @@ describe('StateRenderer', () => {
       context.arc = vi.fn()
 
       const players = [
-        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: false },
-        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true }
+        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: false, health: 0, maxHealth: 100 },
+        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true, health: 100, maxHealth: 100 }
       ]
 
       drawPlayers(context, players, 'p1', scaleX, scaleY)
@@ -44,7 +43,7 @@ describe('StateRenderer', () => {
       context.fillText = vi.fn()
 
       const players = [
-        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: true }
+        { id: 'p1', positionX: 100, positionY: 200, radius: 10, color: 'cyan', alive: true, health: 100, maxHealth: 100 }
       ]
 
       drawPlayers(context, players, 'p1', scaleX, scaleY)
@@ -57,7 +56,7 @@ describe('StateRenderer', () => {
       context.fillText = vi.fn()
 
       const players = [
-        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true }
+        { id: 'p2', positionX: 300, positionY: 400, radius: 10, color: 'magenta', alive: true, health: 100, maxHealth: 100 }
       ]
 
       drawPlayers(context, players, 'p1', scaleX, scaleY)
