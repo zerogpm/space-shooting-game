@@ -118,6 +118,39 @@ _Below is an example of how you can instruct your audience on installing and set
     - [ ] mobile events
     - [ ] enhancing mobile performance
 
+- [ ] 2-Player Networked Multiplayer (PvP + Enemies)
+    - [ ] Phase 1: Separate simulation from rendering
+        - [ ] create src/simulation/ with PlayerSim, EnemySim, ProjectileSim (no canvas dependency)
+        - [ ] create CollisionHelper (extract circle-circle collision logic)
+        - [ ] create GameSim (server-ready game loop with physics + collisions)
+        - [ ] wrap existing entity classes around Sim counterparts
+    - [ ] Phase 2: WebSocket server + lobby
+        - [ ] create Node.js WebSocket server (ws package) on port 3000
+        - [ ] handle player connections, assign player IDs
+        - [ ] lobby UI (connect button, waiting for opponent screen)
+        - [ ] create NetworkClient.js (client-side WebSocket wrapper)
+        - [ ] update docker-compose.yml to run game server alongside Nginx
+    - [ ] Phase 3: Server-authoritative game loop
+        - [ ] server runs GameSim.tick() at 60/sec, broadcasts state snapshots
+        - [ ] clients send input (direction + mouse position) and fire events
+        - [ ] create ClientRenderer.js (renders state snapshots to canvas)
+        - [ ] create multiplayerGame.js (multiplayer client loop)
+        - [ ] both players visible on screen with distinct colors
+        - [ ] enemies target both players
+    - [ ] Phase 4: PvP combat + win/loss
+        - [ ] projectile-vs-player collision (your shots can hit opponent)
+        - [ ] win/lose screens (You Win! / You Lose! with both scores)
+        - [ ] rematch flow (both players request restart)
+    - [ ] Phase 5: Polish
+        - [ ] dual-player HUD (both scores, "YOU" label above own player)
+        - [ ] disconnect handling (opponent leaves = you win)
+        - [ ] fire rate limiting (server-side anti-spam)
+        - [ ] enemy targeting balance (aim at nearest player)
+    - [ ] Phase 6: Network optimization (optional/future)
+        - [ ] client-side prediction for own player movement
+        - [ ] entity interpolation for smooth opponent rendering
+        - [ ] delta compression (send only changes)
+
 See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>

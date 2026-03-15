@@ -13,7 +13,22 @@ Browser-based 2D space shooting game built with vanilla JavaScript (ES modules) 
 docker compose up
 ```
 
-Open http://localhost in a browser. No build, test, or lint commands exist.
+Open http://localhost in a browser.
+
+## Testing
+
+```bash
+npm test          # run all tests once
+npm run test:watch # run tests in watch mode
+```
+
+Uses Vitest with jsdom environment. Tests live in `tests/`. Mock canvas context helper is in `tests/helpers/mockContext.js`.
+
+### Workflow Rule
+
+**Every new feature or change MUST include new test cases.** After implementing a feature, write tests that cover the new behavior and run `npm test` to verify all tests pass before considering the work done. This is mandatory — no exceptions.
+
+**After completing a feature, update the Roadmap checklist in `README.md`** — check off finished items and add new sub-tasks if the feature introduced them.
 
 ## Tech Stack
 
