@@ -1,80 +1,54 @@
 <div id="top"></div>
 
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-
 [![LinkedIn][linkedin-shield]][linkedin-url]
-
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#about-the-project">About The Project</a></li>
     <li>
-      (<a href="#about-the-project">About The Project</a>)
-    </li>
-    <li>
-      (<a href="#getting-started">Getting Started</a>)
+      <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#how-to-play">How to Play</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#license">License</a></li>
   </ol>
 </details>
 
-
-
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 <div id="about-the-project"></div>
-This is a fun little game, just one command and you can lay back and relax. 
 
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like setting up wordpress, PHP, MYSQL, Nginx
-* You should implement DRY principles to the rest of your life :smile:
+Browser-based 2D space shooting game with **2-player networked multiplayer**. Player 1 starts playing solo — Player 2 can drop in mid-game arcade-style with a dramatic "A NEW CHALLENGER HAS ENTERED THE RING!" announcement. Both players fight enemies and each other (PvP + enemies).
+
+Built with vanilla JavaScript, HTML5 Canvas, and WebSocket. No framework.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-<!-- GETTING STARTED -->
 ## Getting Started
 <div id="getting-started"></div>
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* docker install on your machine
-* docker compose install on your machine
+* Docker and Docker Compose installed on your machine
 
 ### Installation
-
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
 
 1. Clone the repo
    ```sh
    git clone https://github.com/zerogpm/space-shooting-game.git
    ```
-2. CD into your downloaded folder
+2. Build and start the game
    ```sh
    ./game.sh build && ./game.sh start
    ```
-3. (Optional) Add audio files — create a `sounds/` folder and add your own audio files with these exact names:
+3. Open the URL shown in the terminal (e.g., `http://localhost:8325`)
+
+4. (Optional) Add audio files — create a `sounds/` folder and add your own audio files with these exact names:
 
    | File | Purpose |
    |------|---------|
@@ -88,11 +62,43 @@ _Below is an example of how you can instruct your audience on installing and set
 
    Audio files are not included in the repo due to size. The game works fine without them — any missing sound is simply skipped.
 
+### Server Commands
+
+| Command | Description |
+|---------|-------------|
+| `./game.sh start` | Start the game server in the background |
+| `./game.sh stop` | Stop the game server |
+| `./game.sh restart` | Stop and start the game server |
+| `./game.sh build` | Build the Docker image |
+| `./game.sh status` | Show container status |
+| `./game.sh logs` | Show server logs |
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+## How to Play
+<div id="how-to-play"></div>
 
+### Controls
+- **WASD / Arrow Keys** — Move
+- **Q/E/Z/C** — Diagonal movement
+- **Mouse Click / Spacebar** — Shoot toward cursor
+- **Escape** — Pause / Unpause
 
-<!-- ROADMAP -->
+### Multiplayer
+- **Player 1** opens the game URL — starts playing immediately
+- **Player 2** opens the same URL from another computer on the same network — sees "Join Game" button
+- On join, Player 1 sees **"A NEW CHALLENGER HAS ENTERED THE RING!"**
+- Both players fight enemies AND each other
+
+### Game Mechanics
+- **Health**: 100 HP. Bigger enemies deal more damage (damage = enemy radius). Player projectiles deal 20 damage.
+- **Scoring**: +10 for shrinking an enemy, +100 for destroying one
+- **Difficulty**: Level increases every 10 seconds — enemies spawn faster and move quicker
+- **Knockback**: Collisions push entities apart physically
+- **Spectator**: When you die, you can watch the other player and request a rematch
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 ## Roadmap
 
 - [x] Fix docker compose set up
@@ -119,109 +125,32 @@ _Below is an example of how you can instruct your audience on installing and set
     - [x] player movement (WASD, arrow keys, Q/E/Z/C diagonals)
     - [x] shoot with spacebar or mouse click
     - [x] difficulty progression (level system with scaling enemy speed and spawn rate)
+    - [x] background music and sound effects
+    - [x] health system with dynamic damage
+    - [x] knockback physics on collisions
+    - [x] pause/unpause (Escape key)
     - [ ] homing enemies
     - [ ] spinning enemies
-    - [ ] homing-spinning enemies
     - [ ] power ups
-    - [ ] dynamic score labels
-    - [ ] interactive background particles
-    - [ ] sound effect
-    - [ ] background music
     - [ ] screen resizing
     - [ ] mobile events
-    - [ ] enhancing mobile performance
 
-- [ ] 2-Player Networked Multiplayer (PvP + Enemies)
+- [x] 2-Player Networked Multiplayer (PvP + Enemies)
     - [x] Phase 1: Separate simulation from rendering
-        - [x] create src/simulation/ with PlayerSim, EnemySim, ProjectileSim (no canvas dependency)
-        - [x] create CollisionHelper (extract circle-circle collision logic)
-        - [x] create GameSim (server-ready game loop with physics + collisions)
-        - [x] wrap existing entity classes around Sim counterparts
     - [x] Phase 2+3: WebSocket server + arcade drop-in multiplayer
-        - [x] Node.js WebSocket server replaces Nginx (serves static files + game state)
-        - [x] auto-connect on page load, Player 1 plays through server immediately
-        - [x] GameSession manages tick loop, enemy spawning, level progression
-        - [x] NetworkClient.js (client-side WebSocket wrapper)
-        - [x] StateRenderer.js (renders server state snapshots to canvas)
-        - [x] networkGame.js (multiplayer client loop — input sending + rendering)
-        - [x] Player 2 sees "Game in Progress" with "Join Game" button
-        - [x] arcade drop-in: "A NEW CHALLENGER HAS ENTERED THE RING!" announcement
-        - [x] 2.5s dramatic pause with GSAP animation on join
-        - [x] both players visible with distinct colors (cyan/magenta)
-        - [x] dual-player HUD (P1 top-left, P2 top-right, level centered)
-        - [x] PvP: projectiles can hit other player, own projectiles pass through self
-        - [x] game-over detection (all players dead), restart flow
-        - [x] disconnect handling, offline fallback to single-player
-        - [x] Dockerfile + updated docker-compose.yml
-    - [x] Phase 4: Polish
-        - [x] fire rate limiting (server-side, 100ms cooldown per player)
-        - [x] enemy targeting balance (aim at nearest player)
-        - [x] spectator mode when dead (watch remaining player with banner)
+    - [x] Phase 4: Polish (fire rate limiting, nearest-player targeting, spectator mode)
     - [ ] Phase 5: Network optimization (optional/future)
-        - [ ] client-side prediction for own player movement
-        - [ ] entity interpolation for smooth opponent rendering
-        - [ ] delta compression (send only changes)
 
 See the [open issues](https://github.com/zerogpm/space-shooting-game/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
-<!-- CONTACT -->
-## Contact
-
-Project Link: [https://github.com/zerogpm/space-shooting-game](https://github.com/zerogpm/space-shooting-game)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/jiansu/
