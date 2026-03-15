@@ -9,11 +9,14 @@ import { GameSim } from '../src/simulation/GameSim.js'
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TICK_RATE, PLAYER_COLORS, PLAYER_RADIUS } from '../src/shared/constants.js'
 
 export class GameSession {
-  constructor(broadcast) {
+  constructor(broadcast, sendToPlayer) {
     this.broadcast = broadcast
+    // sendToPlayer(playerId, message) — sends to a specific player
+    this.sendToPlayer = sendToPlayer
     this.gameSim = new GameSim(CANVAS_WIDTH, CANVAS_HEIGHT)
     this.playerInputs = new Map()
     this.paused = false
+    this.pendingRematchFrom = null // playerId requesting rematch while other is alive
 
     this.tickIntervalId = null
     this.spawnTimerId = null
@@ -112,6 +115,16 @@ export class GameSession {
    * @returns {Object} The state snapshot for the joining player.
    */
   handleJoinGame(playerId, sendToPlayer) {
+    // Guard: don't add a player that already exists (e.g., after restart)
+    if (this.gameSim.getPlayer(playerId)) {
+      sendToPlayer({
+        type: 'gameStart',
+        state: this.gameSim.getStateSnapshot(),
+        yourPlayerId: playerId
+      })
+      return this.gameSim.getStateSnapshot()
+    }
+
     // Calculate a safe spawn position — opposite side from Player 1
     const player1 = this.gameSim.players[0]
     let spawnX = CANVAS_WIDTH / 4
@@ -214,6 +227,58 @@ export class GameSession {
 
     const state = this.gameSim.getStateSnapshot()
     return state
+  }
+
+  /**
+   * Handle a restart request. Behavior depends on game state:
+   * - All players dead → instant restart (no consent needed)
+   * - Requester dead, other alive → ask the alive player for consent
+   */
+  handleRestartRequest(playerId) {
+    const allDead = this.gameSim.players.every(player => !player.alive)
+
+    if (allDead) {
+      // Everyone is dead — restart immediately, no consent needed
+      return 'restart'
+    }
+
+    // Requester is dead but other player is alive — need consent
+    const requester = this.gameSim.getPlayer(playerId)
+    if (requester && !requester.alive) {
+      this.pendingRematchFrom = playerId
+
+      // Find the alive player and ask them
+      const alivePlayer = this.gameSim.players.find(player => player.alive)
+      if (alivePlayer) {
+        this.sendToPlayer(alivePlayer.id, {
+          type: 'rematchRequested',
+          fromPlayerId: playerId
+        })
+      }
+      return 'pending'
+    }
+
+    return 'ignored'
+  }
+
+  /**
+   * Handle the alive player accepting a rematch request.
+   * Triggers a full game reset with challenger announcement.
+   */
+  handleAcceptRematch() {
+    this.pendingRematchFrom = null
+    return 'restart'
+  }
+
+  /**
+   * Handle the alive player declining a rematch request.
+   * Notifies the dead player that it was declined.
+   */
+  handleDeclineRematch() {
+    if (this.pendingRematchFrom) {
+      this.sendToPlayer(this.pendingRematchFrom, { type: 'rematchDeclined' })
+      this.pendingRematchFrom = null
+    }
   }
 
   /**

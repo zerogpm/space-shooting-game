@@ -20,10 +20,29 @@ show_help() {
   echo "  -h, --help  Show this help message"
 }
 
+get_port() {
+  # Read the host port from docker-compose.yml (e.g., "- 8325:3000" → "8325")
+  grep -oE '[0-9]+:[0-9]+' docker-compose.yml | head -1 | cut -d: -f1
+}
+
+get_local_ip() {
+  # Get the LAN IP address for other players to connect
+  ipconfig 2>/dev/null | grep "IPv4" | head -1 | sed 's/.*: //'
+}
+
 start_game() {
   echo "Starting game server..."
   docker compose up -d --remove-orphans
-  echo "Game running at http://localhost"
+
+  local port
+  port=$(get_port)
+  local ip
+  ip=$(get_local_ip)
+
+  echo ""
+  echo "Game is running!"
+  echo "  Player 1 (this PC):    http://localhost:${port}"
+  echo "  Player 2 (other PC):   http://${ip}:${port}"
 }
 
 stop_game() {

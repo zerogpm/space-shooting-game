@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(bash game.sh build 2>&1)",
+      "Bash(bash game.sh start 2>&1)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(bash game.sh restart 2>&1)"
     ]
   }
 }

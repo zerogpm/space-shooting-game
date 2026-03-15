@@ -98,6 +98,20 @@ export class NetworkClient {
   }
 
   /**
+   * Accept a rematch request from the other player.
+   */
+  sendAcceptRematch() {
+    this.send({ type: 'acceptRematch' })
+  }
+
+  /**
+   * Decline a rematch request from the other player.
+   */
+  sendDeclineRematch() {
+    this.send({ type: 'declineRematch' })
+  }
+
+  /**
    * Send a JSON message to the server.
    */
   send(message) {

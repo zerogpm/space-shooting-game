@@ -77,6 +77,16 @@ function broadcastToAll(message) {
 }
 
 /**
+ * Send a JSON message to a specific player by ID.
+ */
+function sendToPlayerById(playerId, message) {
+  const webSocket = connectedPlayers.get(playerId)
+  if (webSocket) {
+    sendToClient(webSocket, message)
+  }
+}
+
+/**
  * Assign a player ID to a new connection.
  * Returns "p1" or "p2", or null if the game is full.
  */
@@ -84,6 +94,51 @@ function assignPlayerId() {
   if (!connectedPlayers.has('p1')) return 'p1'
   if (!connectedPlayers.has('p2')) return 'p2'
   return null
+}
+
+/**
+ * Restart the game for all connected players.
+ * If showChallenger is true, pauses with the dramatic announcement first.
+ */
+function performRestart(showChallenger) {
+  const playerIds = Array.from(connectedPlayers.keys())
+  const state = gameSession.restart(playerIds)
+
+  if (showChallenger && playerIds.length > 1) {
+    // Pause the game and show challenger announcement
+    gameSession.paused = true
+
+    for (const [pid, ws] of connectedPlayers) {
+      sendToClient(ws, {
+        type: 'gameStart',
+        state,
+        yourPlayerId: pid
+      })
+    }
+
+    broadcastToAll({
+      type: 'challengerJoined',
+      newPlayerId: playerIds[1],
+      playerColor: 'magenta'
+    })
+
+    // Resume after dramatic pause
+    setTimeout(() => {
+      if (gameSession) {
+        gameSession.paused = false
+        broadcastToAll({ type: 'challengerReady' })
+      }
+    }, 2500)
+  } else {
+    // Instant restart (both were dead, or single player)
+    for (const [pid, ws] of connectedPlayers) {
+      sendToClient(ws, {
+        type: 'gameStart',
+        state,
+        yourPlayerId: pid
+      })
+    }
+  }
 }
 
 webSocketServer.on('connection', (webSocket) => {
@@ -100,7 +155,7 @@ webSocketServer.on('connection', (webSocket) => {
 
   if (!gameSession) {
     // First player — create a new game session
-    gameSession = new GameSession(broadcastToAll)
+    gameSession = new GameSession(broadcastToAll, sendToPlayerById)
     gameSession.start(playerId)
 
     sendToClient(webSocket, { type: 'welcome', playerId, status: 'new' })
@@ -139,17 +194,26 @@ webSocketServer.on('connection', (webSocket) => {
         break
 
       case 'requestRestart': {
-        const playerIds = Array.from(connectedPlayers.keys())
-        const state = gameSession.restart(playerIds)
-        for (const [pid, ws] of connectedPlayers) {
-          sendToClient(ws, {
-            type: 'gameStart',
-            state,
-            yourPlayerId: pid
-          })
+        const result = gameSession.handleRestartRequest(playerId)
+        if (result === 'restart') {
+          // All players dead — instant restart, no announcement needed
+          performRestart(false)
         }
         break
       }
+
+      case 'acceptRematch': {
+        const result = gameSession.handleAcceptRematch()
+        if (result === 'restart') {
+          // Rematch accepted — pause with challenger announcement
+          performRestart(true)
+        }
+        break
+      }
+
+      case 'declineRematch':
+        gameSession.handleDeclineRematch()
+        break
     }
   })
 

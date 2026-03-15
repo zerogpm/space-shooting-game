@@ -1,13 +1,21 @@
-# Fix Docker container conflict
+# Fix restart/rematch flow
 
 ## Context
-The old Nginx container named `space-shooting` is still running from the previous docker-compose.yml config. The new `docker-compose.yml` renamed the service from `nginx` to `game-server` but kept the same `container_name`, causing a conflict. Also the `version` key is obsolete.
+Current bug: Player 2 can reset Player 1's active game without consent. Need proper rematch flow with consent.
 
-## Fix
-1. Remove `version: "3.9"` from docker-compose.yml (obsolete, causes warning)
-2. Update `stop_game()` in game.sh to use `--remove-orphans` flag to clean up old containers
-3. Add `--remove-orphans` to `start_game()` too for safety
+## Flow
+1. **P2 dies, P1 alive** → P2 clicks "Try Again" → server sends `rematchRequested` to P1 → P1 sees "Player 2 wants a rematch — Accept?" → P1 accepts → full reset + challenger announcement
+2. **Both dead** → Either clicks "Try Again" → instant reset, no consent needed
+
+## New messages
+- Client→Server: `requestRestart` (unchanged, but server now checks if other player is alive)
+- Server→Client: `rematchRequested { fromPlayerId }` (sent to alive player)
+- Client→Server: `acceptRematch` / `declineRematch`
+- Server→Client: `rematchDeclined` (sent to dead player if declined)
 
 ## Files
-- `docker-compose.yml` (remove version)
-- `game.sh` (add --remove-orphans to stop and start)
+- `server/GameSession.js` — add rematch request/accept/decline logic
+- `server/server.js` — route new message types
+- `src/networkGame.js` — show accept/decline UI for P1, show "waiting" for P2
+- `index.html` — add rematch request overlay
+- `game.css` — style it

@@ -8,6 +8,7 @@ body {
 
 #game-over-screen,
 #join-game-screen,
+#rematch-screen,
 #challenger-screen {
     display: none;
     position: fixed;
@@ -25,6 +26,7 @@ body {
 
 #game-over-screen.visible,
 #join-game-screen.visible,
+#rematch-screen.visible,
 #challenger-screen.visible {
     display: flex;
 }
@@ -46,9 +48,33 @@ body {
     opacity: 0.8;
 }
 
+/* ─── Rematch Request Overlay ─────────────────────────────── */
+
+#rematch-screen {
+    z-index: 12;
+}
+
+#rematch-screen h1 {
+    font-size: 42px;
+    margin: 0 0 8px 0;
+}
+
+#rematch-screen p {
+    font-size: 20px;
+    margin: 0 0 32px 0;
+    opacity: 0.8;
+}
+
+#rematch-buttons {
+    display: flex;
+    gap: 20px;
+}
+
 /* Shared button styles for overlay actions */
 #restart-button,
-#join-game-button {
+#join-game-button,
+#accept-rematch-button,
+#decline-rematch-button {
     padding: 14px 40px;
     font-size: 20px;
     border: 2px solid white;
@@ -59,7 +85,9 @@ body {
 }
 
 #restart-button:hover,
-#join-game-button:hover {
+#join-game-button:hover,
+#accept-rematch-button:hover,
+#decline-rematch-button:hover {
     background: white;
     color: black;
 }

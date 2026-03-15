@@ -28,6 +28,13 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   // Particles are client-side only — spawned from server hit events
   const particles = []
 
+  // ─── Local Smooth Animations ──────────────────────────────
+  // The server sends instant radius changes for enemy shrinks.
+  // Each client tracks visual radii locally and uses GSAP to tween smoothly.
+  // No extra network traffic — both clients animate independently.
+  // Maps enemyId → { radius: currentVisualRadius }
+  const enemyVisualRadii = new Map()
+
   // Scale factors to map server coordinates to client canvas
   const scaleX = canvas.width / CANVAS_WIDTH
   const scaleY = canvas.height / CANVAS_HEIGHT
@@ -42,16 +49,37 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
   const restartButton = document.getElementById('restart-button')
   const challengerScreen = document.getElementById('challenger-screen')
   const joinGameScreen = document.getElementById('join-game-screen')
+  const rematchScreen = document.getElementById('rematch-screen')
+  const acceptRematchButton = document.getElementById('accept-rematch-button')
+  const declineRematchButton = document.getElementById('decline-rematch-button')
 
   // ─── Server Message Handling ────────────────────────────────
   networkClient.onMessage((message) => {
     switch (message.type) {
       case 'state':
         latestState = message.state
-        // Spawn particles from hit events
+        // Handle hit events — spawn particles and animate shrinks locally
         if (message.events && message.events.hits) {
           for (const hit of message.events.hits) {
             spawnExplosion(hit.positionX, hit.positionY, hit.color, hit.particleCount)
+
+            // Smooth shrink animation using GSAP — runs locally on each client
+            if (hit.type === 'shrink' && typeof gsap !== 'undefined') {
+              const visual = enemyVisualRadii.get(hit.enemyId)
+              if (visual) {
+                gsap.to(visual, { radius: hit.newRadius, duration: 0.3, ease: 'power2.out' })
+              } else {
+                // First time seeing this enemy shrink — start from old radius
+                const entry = { radius: hit.newRadius + 10 }
+                enemyVisualRadii.set(hit.enemyId, entry)
+                gsap.to(entry, { radius: hit.newRadius, duration: 0.3, ease: 'power2.out' })
+              }
+            }
+
+            // Clean up visual tracking for killed enemies
+            if (hit.type === 'kill') {
+              enemyVisualRadii.delete(hit.enemyId)
+            }
           }
         }
         break
@@ -66,9 +94,15 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
 
       case 'gameStart':
         latestState = message.state
-        // Hide join screen if it was showing
+        enemyVisualRadii.clear()
+        // Hide all overlays and reset button state
         if (joinGameScreen) joinGameScreen.classList.remove('visible')
         if (gameOverScreen) gameOverScreen.classList.remove('visible')
+        if (rematchScreen) rematchScreen.classList.remove('visible')
+        if (restartButton) {
+          restartButton.textContent = 'Try Again'
+          restartButton.disabled = false
+        }
         break
 
       case 'playerDied':
@@ -87,8 +121,19 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
         showGameOver(message.scores)
         break
 
+      case 'rematchRequested':
+        // The other player wants a rematch — show accept/decline UI
+        showRematchRequest(message.fromPlayerId)
+        break
+
+      case 'rematchDeclined':
+        // The alive player declined — update the death screen
+        if (finalScoreText) finalScoreText.textContent += ' — Rematch declined'
+        break
+
       case 'playerDisconnected':
-        // Could show a notification — for now, the game just continues
+        // Hide rematch screen if it was showing
+        if (rematchScreen) rematchScreen.classList.remove('visible')
         break
     }
   })
@@ -140,7 +185,7 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
 
     // Render game state from server snapshot
     if (latestState) {
-      drawEnemies(context, latestState.enemies, scaleX, scaleY)
+      drawEnemies(context, latestState.enemies, scaleX, scaleY, enemyVisualRadii)
       drawProjectiles(context, latestState.projectiles, scaleX, scaleY)
       drawPlayers(context, latestState.players, myPlayerId, scaleX, scaleY)
 
@@ -230,13 +275,35 @@ export function startNetworkGame(canvas, context, networkClient, myPlayerId, ini
     }
   }
 
-  // ─── Restart ────────────────────────────────────────────────
+  // ─── Restart / Rematch ──────────────────────────────────────
   if (restartButton) {
     restartButton.onclick = () => {
-      gameOverScreen.classList.remove('visible')
-      context.fillStyle = 'black'
-      context.fillRect(0, 0, canvas.width, canvas.height)
+      // Send restart request — server decides if it's instant or needs consent
       networkClient.sendRestart()
+      // Update button text to show we're waiting
+      restartButton.textContent = 'Waiting...'
+      restartButton.disabled = true
+    }
+  }
+
+  // ─── Rematch Request UI (shown to the alive player) ────────
+  function showRematchRequest(fromPlayerId) {
+    if (rematchScreen) {
+      rematchScreen.classList.add('visible')
+    }
+  }
+
+  if (acceptRematchButton) {
+    acceptRematchButton.onclick = () => {
+      if (rematchScreen) rematchScreen.classList.remove('visible')
+      networkClient.sendAcceptRematch()
+    }
+  }
+
+  if (declineRematchButton) {
+    declineRematchButton.onclick = () => {
+      if (rematchScreen) rematchScreen.classList.remove('visible')
+      networkClient.sendDeclineRematch()
     }
   }
 

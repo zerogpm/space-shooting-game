@@ -41,12 +41,24 @@ export function drawPlayers(context, players, myPlayerId, scaleX, scaleY) {
 
 /**
  * Draw all enemies as circles.
+ * Uses local visual radii (from GSAP tweens) for smooth shrink animations
+ * when available, falling back to the server's radius otherwise.
+ *
+ * @param {CanvasRenderingContext2D} context
+ * @param {Array} enemies - Enemy objects from state snapshot.
+ * @param {number} scaleX
+ * @param {number} scaleY
+ * @param {Map} [enemyVisualRadii] - Optional map of enemyId → { radius } for smooth animations.
  */
-export function drawEnemies(context, enemies, scaleX, scaleY) {
+export function drawEnemies(context, enemies, scaleX, scaleY, enemyVisualRadii) {
   for (const enemy of enemies) {
     const screenX = enemy.positionX * scaleX
     const screenY = enemy.positionY * scaleY
-    const screenRadius = enemy.radius * Math.min(scaleX, scaleY)
+
+    // Use the local visual radius if GSAP is animating it, otherwise use server value
+    const visual = enemyVisualRadii && enemyVisualRadii.get(enemy.id)
+    const radius = visual ? visual.radius : enemy.radius
+    const screenRadius = radius * Math.min(scaleX, scaleY)
 
     context.beginPath()
     context.arc(screenX, screenY, screenRadius, 0, Math.PI * 2, false)
