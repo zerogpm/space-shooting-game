@@ -4,6 +4,8 @@ services:
     build: .
     ports:
       - 8325:3000
+    environment:
+      - HOST_PORT=8325
     volumes:
       - ./:/app
       - /app/server/node_modules

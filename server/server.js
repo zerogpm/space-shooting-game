@@ -2,7 +2,8 @@
  * server.js — Game server that serves static files and manages WebSocket connections.
  *
  * Replaces Nginx with a single Node.js process that handles both HTTP (static files)
- * and WebSocket (game state) on port 3000. Docker maps this to port 80.
+ * and WebSocket (game state) on port 3000 inside the container.
+ * Docker compose maps this to host port 8325 (see docker-compose.yml).
  */
 import { createServer } from 'http'
 import { readFile } from 'fs/promises'
@@ -267,6 +268,8 @@ webSocketServer.on('connection', (webSocket) => {
 
 // ─── Start ──────────────────────────────────────────────────────
 const PORT = 3000
+const HOST_PORT = process.env.HOST_PORT || '8325'
 httpServer.listen(PORT, () => {
-  console.log(`Game server running on port ${PORT}`)
+  console.log(`Game server listening on container port ${PORT}`)
+  console.log(`Open http://localhost:${HOST_PORT} in your browser`)
 })
